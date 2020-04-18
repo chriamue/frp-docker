@@ -1,0 +1,33 @@
+version: '3'
+services:
+  frps:
+    build:
+      context: .
+      dockerfile: frps.Dockerfile
+    environment:
+      - FRP_SERVER_ADDR=${FRP_SERVER_ADDR}
+      - FRP_TOKEN=${FRP_TOKEN}
+      - FRP_SUBDOMAIN=${FRP_SUBDOMAIN}
+    volumes:
+      - ./frps.ini:/etc/frps.ini:ro
+
+  frpc:
+    build:
+      context: .
+      dockerfile: frpc.Dockerfile
+    environment:
+      - FRP_TOKEN=${FRP_TOKEN}
+    volumes:
+      - ./frpc.ini:/etc/frpc.ini:ro
+
+  express:
+    image: chrispauley/express-helloworld
+    network_mode: "service:frpc"
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/fprs.conf:ro
+    ports: 
+      - 8081:80
+      - 8443:443
