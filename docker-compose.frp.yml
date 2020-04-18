@@ -1,0 +1,47 @@
+version: "3"
+services:
+  frps:
+    build:
+      context: .
+      dockerfile: frps.Dockerfile
+    environment:
+      - FRP_SERVER_ADDR=${FRP_SERVER_ADDR}
+      - FRP_TOKEN=${FRP_TOKEN}
+      - FRP_SUBDOMAIN=${FRP_SUBDOMAIN}
+    networks:
+      frp_net:
+    volumes:
+      - ./frps.ini:/etc/frps.ini:ro
+
+  frpc:
+    build:
+      context: .
+      dockerfile: frpc.Dockerfile
+    environment:
+      - FRP_TOKEN=${FRP_TOKEN}
+    networks:
+      frp_net:
+    volumes:
+      - ./frpc.ini:/etc/frpc.ini:ro
+
+  express:
+    networks:
+      frp_net:
+        ipv4_address: 172.28.1.3
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/fprs.conf:ro
+    networks:
+      frp_net:
+    ports:
+      - 8081:80
+      - 8443:443
+
+networks:
+  frp_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
